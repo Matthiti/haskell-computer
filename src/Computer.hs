@@ -14,8 +14,10 @@ terminal :: Status -> IO ()
 terminal s = do
   putStr $ (currUser s) ++ ":" ++ (pathToString (currDir s)) ++ " $ "
   input <- getLine
-  if (command (parseCommand input)) == "exit"
-    then return ()
-    else do
-      newStatus <- executeCommand s (parseCommand input)
-      terminal newStatus
+  if null input
+    then terminal s
+    else if (command (parseCommand input)) == "exit"
+      then return ()
+      else do
+        newStatus <- executeCommand s (parseCommand input)
+        terminal newStatus

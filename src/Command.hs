@@ -15,11 +15,8 @@ parseCommand :: String -> Command
 parseCommand s = Command{command=head (words s), args=tail (words s)}
 
 executeCommand :: Status -> Command -> IO (Status)
--- executeCommand s (Command "ls" _) = do
---   when (isJust files) $ putStrLn $ intercalate "\t" $ map show $ fromJust files
---   return s
---   where files = getDirectoryContents (fileStructure s) (currDir s)
 executeCommand s c@(Command "ls" args) = ls s args
+executeCommand s c@(Command "cd" args) = cd s args
 executeCommand s c = do
   putStrLn $ "Command not found: " ++ command c
   return s
@@ -38,3 +35,14 @@ ls s (x:[])
 ls s xs = do
   mapM (\x -> ls s [x]) xs
   return s
+
+-- |if lenght(args) > 1, only the first one will be used
+cd :: Status -> Args -> IO (Status)
+cd s [] = return s { currDir = []}
+cd s (x:xs)
+  | isJust result  = return s { currDir = path }
+  | otherwise = do
+    putStrLn $ "Unknown directory: " ++ x
+    return s
+  where result = goToDirectory (fileStructure s) path
+        path   = absolutePath (fileStructure s) (currDir s) (stringToPath x)

@@ -5,6 +5,7 @@ module FileManager
     Path,
     pathToString,
     stringToPath,
+    absolutePath,
     base,
     getDirectoryContents,
     goToDirectory,
@@ -48,6 +49,14 @@ pathToString p = "/" ++ intercalate "/" p
 
 stringToPath :: String -> Path
 stringToPath s = split '/' s
+
+absolutePath :: FileStructure -> Path -> Path -> Path
+absolutePath fs currPath [] = currPath
+absolutePath fs currPath ("..":xs)
+  | null currPath = absolutePath fs currPath xs
+  | otherwise     = absolutePath fs (init currPath) xs
+absolutePath fs currPath (".":xs) = absolutePath fs currPath xs
+absolutePath fs currPath (x:xs) = absolutePath fs (currPath ++ [x]) xs
 
 pathSeperator :: String
 pathSeperator = "/"
