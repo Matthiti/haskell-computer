@@ -15,8 +15,9 @@ parseCommand :: String -> Command
 parseCommand s = Command{command=head (words s), args=tail (words s)}
 
 executeCommand :: Status -> Command -> IO (Status)
-executeCommand s c@(Command "ls" args) = ls s args
-executeCommand s c@(Command "cd" args) = cd s args
+executeCommand s (Command "ls" args) = ls s args
+executeCommand s (Command "cd" args) = cd s args
+executeCommand s (Command "mkdir" args) = mkdir s args
 executeCommand s c = do
   putStrLn $ "Command not found: " ++ command c
   return s
@@ -39,10 +40,15 @@ ls s xs = do
 -- |if lenght(args) > 1, only the first one will be used
 cd :: Status -> Args -> IO (Status)
 cd s [] = return s { currDir = []}
-cd s (x:xs)
+cd s (x:_)
   | isJust result  = return s { currDir = path }
   | otherwise = do
     putStrLn $ "Unknown directory: " ++ x
     return s
   where result = goToDirectory (fileStructure s) path
         path   = absolutePath (fileStructure s) (currDir s) (stringToPath x)
+
+mkdir :: Status -> Args -> IO (Status)
+mkdir s [] = do
+  putStrLn "No directory specified"
+  return s

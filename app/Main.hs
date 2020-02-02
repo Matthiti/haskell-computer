@@ -1,6 +1,9 @@
 module Main where
 
-import Lib
+import Computer
+import System.IO
 
 main :: IO ()
-main = someFunc
+main = do 
+    hSetBuffering stdout NoBuffering
+    boot

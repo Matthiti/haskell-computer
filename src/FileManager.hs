@@ -75,7 +75,7 @@ example = FolderStructure Folder {identifier=1, name="/", rights=Rights{FileMana
   ]
 
 getDirectoryContents :: FileStructure -> Path -> Maybe [File]
-getDirectoryContents fs@(FolderStructure f xs) path = do
+getDirectoryContents fs@(FolderStructure _ xs) path = do
   folder <- goToDirectory fs path
   return $ map root (contents folder)
   where contents (FolderStructure _ xs) = xs
@@ -88,6 +88,26 @@ goToDirectory (FolderStructure f xs) (p:ps)
   | otherwise = Nothing
   where folders = filter isFolder xs
         nextFolder = find (\x -> (name (root x)) == p) folders
+  
+createDirectory :: FileStructure -> Path -> Maybe FileStructure
+createDirectory (FileStructure _) _ = Nothing
+createDirectory fs [] = Just fs
+createDirectory fs@(FolderStructure f xs) (p:ps)
+  | isJust next = do
+      newStructure <- createDirectory (fromJust next) ps
+      return $ FolderStructure f (newStructure:rest)
+  | otherwise = Just fs -- TODO: Implement
+  where next = find (\x -> name (root x) == p) xs
+        rest = filter (\x -> name (root x) /= p) xs
+
+exists :: FileStructure -> Path -> Bool
+exists fs [] = True
+exists (FileStructure f) (p:[]) = name f == p
+exists (FileStructure f) _ = False
+exists (FolderStructure _ xs) (p:ps)
+  | isJust next = exists (fromJust next) ps
+  | otherwise   = False
+  where next = find (\x -> name (root x) == p) xs
       
 isFolder :: FileStructure -> Bool
 isFolder (FolderStructure _ _) = True
